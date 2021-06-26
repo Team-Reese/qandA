@@ -4,7 +4,7 @@ const pool1 = new Pool({
   user: 'postgres',
   host: 'localhost',
   database: 'test',
-  port: 5430,
+  port: 5432,
 });
 
 // Connection error handling

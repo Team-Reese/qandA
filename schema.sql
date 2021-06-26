@@ -9,7 +9,7 @@ CREATE DATABASE sdc_questions_answers;
 -- -- );
 
 CREATE TABLE IF NOT EXISTS questions (
-  question_id SERIAL UNIQUE NOT NULL PRIMARY KEY,
+  question_id SERIAL NOT NULL PRIMARY KEY,
   product_id INT,
   question_body VARCHAR(1000),
   question_date BIGINT,
@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS questions (
 );
 
 CREATE TABLE IF NOT EXISTS answers (
-  answer_id SERIAL UNIQUE NOT NULL PRIMARY KEY,
+  answer_id SERIAL NOT NULL PRIMARY KEY,
   question_id SERIAL REFERENCES questions (question_id),
   answer_body VARCHAR(1000),
   answer_date BIGINT,
