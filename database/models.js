@@ -17,10 +17,23 @@ const getQuestions = (productId, callback) => {
 };
 
 // Get all answers for a particular question
-const getAnswers = (product_id, callback) => {
+const getAnswers = (questionId, callback) => {
+  // const queryString = `SELECT
+  // // answers.answer_id, answers.answer_body, answers.answer_date, answers.answerer_name, answers.reported, answers.answer_helpfulness,
+  // // (SELECT array(SELECT photo_url FROM photos WHERE photos.answer_id = answer.answer_id) as photos)
+  // // FROM
+  // // answers where question_id =3;`
 
+  const queryString = `select answer_id, answer_body, answer_date, answerer_name, reported, answer_helpfulness,
+   (select array(select photo_url from photos where answer_id =  answers.answer_id) as photos) from answers where question_id = ${questionId};`;
+  pool.query(queryString, (err, result) => {
+    if (err) {
+      callback(err, null);
+    } else {
+      callback(null, result);
+    }
+  });
 };
-
 // Post a question to the database
 const insertQuestion = (question, callback) => {
   // format question
@@ -30,7 +43,7 @@ const insertQuestion = (question, callback) => {
     if (err) {
       callback(err, null);
     } else {
-      callback(null, err);
+      callback(null, result);
     }
   });
 };
@@ -38,7 +51,7 @@ const insertQuestion = (question, callback) => {
 // Post an answer to the database
 const insertAnswer = (answer, callback) => {
   const queryString = `INSERT INTO answers (question_id, answer_body, answer_date, answerer_name, answerer_email, reported, answer_helpfulness)
-  VALUES (${answer.body}, ${answer.date}, ${answer.name}, ${answer.email}, 0, 0);`;
+  VALUES (${answer.questionId}, '${answer.body}', ${answer.date}, '${answer.name}', '${answer.email}', 0, 0);`;
   pool.query(queryString, (err, result) => {
     if (err) {
       callback(err, null);

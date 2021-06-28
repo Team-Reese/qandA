@@ -16,8 +16,6 @@ app.use(express.static('client')); // get the static files
 
 // ROUTES
 
-// console.log('models', models);
-
 // Get all questions for a particular product
 app.get('/qa/questions', (req, res) => {
   // get queryParams from the request
@@ -48,14 +46,20 @@ app.get('/qa/questions/:question_id/answers', (req, res) => {
   const test = { cats: 'answers' };
   // get question_id from the request:
   const questionId = req.params.question_id;
+  models.getAnswers(questionId, (err, result) => {
+    if (err) {
+      res.status(500).send('Request failed');
+    } else {
+      console.log('result', result.rows);
+      res.status(200).send(result.rows);
+    }
+  });
 
 
   // get queryParams from the request:
-  const queryParams = req.query;
+  // const queryParams = req.query;
   // console.log('queryParams', queryParams) { page: '3', count: '5' }
   // if no querParams default page: 1 count: 5
-
-  res.status(200).send('Request successful');
 });
 
 // Post a question to the database
@@ -69,28 +73,47 @@ app.post('/qa/questions', (req, res) => {
   //   email: 'a@abc.com',
   //   product_id: '1234'
   // }
-
-
-
-  res.status(201).send('Request successful');
+  models.insertQuestion(question, (err, result) => {
+    if (err) {
+      res.status(500).send('Request failed: ', err);
+    } else {
+      res.status(201).send('Request successful');
+    }
+  });
 });
 
 // Post an answer to the database
 app.post('/qa/questions/:question_id/answers', (req, res) => {
-  const pathParams = req.params.question_id;
+  const questionId = req.params.question_id;
   const answer = req.body;
   const date = Date.now();
   answer.date = date;
+  answer.questionId = questionId;
   // {
   //   body: 'text goes here',
   //   name: 'username',
   //   email: 'hello@test.com',
   //   photos: [ 'url', 'url1' ]
   // }
+  console.log('answer object ', answer);
   models.insertAnswer(answer, (err, results) => {
     if (err) {
-      res.status(500).send('Request failed: ', err);
+      res.status(400).send('Request failed: ');
     } else {
+      // if (answer.photos.length !== 0) {
+      //   // call insertPhotos only if post has photos
+      //   models.insertPhotos(answerId, (err, results) => {
+      //     if (err) {
+      //       res.status(500).send('Inserting photos failed: ', err);
+      //     } else {
+      //       res.status(201).send('Answer posted');
+      //     }
+      //   });
+      //   res.status(201).send('Answer posted');
+      // } else {
+      //   res.status(201).send('Answer posted');
+      // }
+      console.log(results);
       res.status(201).send('Answer posted');
     }
   });
@@ -99,7 +122,7 @@ app.post('/qa/questions/:question_id/answers', (req, res) => {
 // Put - Mark a question as helpful
 app.put('/qa/questions/:question_id/helpful', (req, res) => {
   const questionId = req.params.question_id;
-  models.markQuestionHelpful(questionId, (err, results)=> {
+  models.markQuestionHelpful(questionId, (err, results) => {
     if (err) {
       res.status(400).send('Error marking question as helpful: ', err);
     } else {
