@@ -9,7 +9,7 @@ const pool = require('./localdb');
 //   // from questions where product_id = ${productId};`;
 // Get all questions for a particular product
 const getQuestions = (productId, callback) => {
-  const queryString = 'SELECT * FROM questions WHERE product_id =1;';
+  const queryString = 'SELECT * FROM questions WHERE product_id =3;';
   pool.query(queryString, (err, result) => {
     if (err) {
       callback(err, null);
@@ -20,10 +20,10 @@ const getQuestions = (productId, callback) => {
 };
 
 // Get all answers for a particular question
-const getAnswers = (questionId, callback) => {
+const getAnswers = (questionId, page, count, callback) => {
   const queryString = `select answer_id, answer_body, answer_date, answerer_name, reported, answer_helpfulness,
     (select array(select json_build_object('id', photo_id, 'url', photo_url) from photos  where answer_id = answers.answer_id) as photos)
-    from answers where question_id = ${questionId}; `;
+    from answers where question_id = ${questionId} ORDER BY answer_helpfulness DESC LIMIT ${count} OFFSET ${count * (page - 1)};`;
   pool.query(queryString, (err, result) => {
     if (err) {
       callback(err, null);
@@ -240,3 +240,5 @@ module.exports = {
 
 // const queryString = `select answer_id, answer_body, answer_date, answerer_name, reported, answer_helpfulness,
 //  (select array(select photo_url from photos where answer_id =  answers.answer_id) as photos) from answers where question_id = ${questionId};`;
+
+

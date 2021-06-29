@@ -38,7 +38,10 @@ app.get('/qa/questions', (req, res) => {
 app.get('/qa/questions/:question_id/answers', (req, res) => {
   const queryParams = req.query;
   const questionId = req.params.question_id;
-  models.getAnswers(questionId, (err, result) => {
+  const page = queryParams.page || 1;
+  const count = queryParams.count || 5;
+  console.log('count', count);
+  models.getAnswers(questionId, page, count, (err, result) => {
     if (err) {
       res.status(500).send('Request failed');
     } else {
