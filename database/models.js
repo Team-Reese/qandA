@@ -19,11 +19,18 @@ const getQuestions = (productId, page, count, callback) => {
 
 // Get all answers for a particular question
 const getAnswers = (questionId, page, count, callback) => {
-  const queryString = `select answer_id, answer_body, answer_date, answerer_name, reported, answer_helpfulness,
-    (select array(select json_build_object('id', photo_id, 'url', photo_url) from photos  where answer_id = answers.answer_id) as photos)
-    from answers where question_id = ${questionId} AND reported = 0 ORDER BY answer_helpfulness DESC LIMIT ${count} OFFSET ${count * (page - 1)};`;
-  pool.query(queryString, (err, result) => {
+  page = page - 1;
+  const skip = count * page;
+  const queryString = 'select answer_id, answer_body, answer_date, answerer_name, reported, answer_helpfulness,\
+  (select array(select json_build_object(\'id\', photo_id, \'url\', photo_url) from photos  where answer_id = answers.answer_id) as photos)\
+  from answers where question_id = $1 AND reported = 0\
+   ORDER BY answer_helpfulness DESC LIMIT $2 OFFSET $3;';
+  // const queryString = `select answer_id, answer_body, answer_date, answerer_name, reported, answer_helpfulness,
+  //   (select array(select json_build_object('id', photo_id, 'url', photo_url) from photos  where answer_id = answers.answer_id) as photos)
+  //   from answers where question_id = ${questionId} AND reported = 0 ORDER BY answer_helpfulness DESC LIMIT ${count} OFFSET ${count * (page - 1)};`;
+  pool.query(queryString, [questionId, count, skip], (err, result) => {
     if (err) {
+      console.log(err);
       callback(err, null);
     } else {
       callback(null, result);
@@ -33,9 +40,9 @@ const getAnswers = (questionId, page, count, callback) => {
 // Post a question to the database
 const insertQuestion = (question, callback) => {
   // format question
-  const queryString = `INSERT INTO questions(product_id, question_body, question_date, asker_name, asker_email, reported, question_helpfulness)
-    VALUES(${question.productId}, ${question.body}, ${question.date}, ${question.name}, ${question.email}, 0, 0)`;
-  pool.query(queryString, (err, result) => {
+  const queryString = 'INSERT INTO questions(product_id, question_body, question_date, asker_name, asker_email, reported, question_helpfulness) VALUES($1, $2, $3, $4, $5, false, 0)';
+  pool.query(queryString, [question.product_id, question.body, question.date,
+    question.name, question.email], (err, result) => {
     if (err) {
       callback(err, null);
     } else {

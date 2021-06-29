@@ -59,15 +59,9 @@ app.post('/qa/questions', (req, res) => {
   const question = req.body;
   const date = Date.now();
   question.date = date;
-  // {
-  //   body: 'text of question',
-  //   name: 'username',
-  //   email: 'a@abc.com',
-  //   product_id: '1234'
-  // }
   models.insertQuestion(question, (err, result) => {
     if (err) {
-      res.status(500).send('Request failed: ', err);
+      res.status(err.status).send('Request failed: ', err);
     } else {
       res.status(201).send('Request successful');
     }
