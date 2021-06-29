@@ -16,7 +16,7 @@ app.use(express.static('./frontend-capstone/dist')); // get the static files
 
 // ROUTES
 
-// Get all questions for a particular product
+// Get all questions AND BUILD RESPOSE OBJ for a particular product
 app.get('/qa/questions', (req, res) => {
   // get queryParams from the request
   const queryParams = req.query;
@@ -40,16 +40,14 @@ app.get('/qa/questions/:question_id/answers', (req, res) => {
   const questionId = req.params.question_id;
   const page = queryParams.page || 1;
   const count = queryParams.count || 5;
-  console.log('count', count);
   models.getAnswers(questionId, page, count, (err, result) => {
     if (err) {
       res.status(500).send('Request failed');
     } else {
-      console.log(result.rows);
       const obj = {};
       obj.question = questionId;
-      obj.page = queryParams.page || 1;
-      obj.count = queryParams.count || 5;
+      obj.page = page;
+      obj.count = count;
       obj.results = result.rows;
       res.status(200).send(obj);
     }
@@ -83,32 +81,24 @@ app.post('/qa/questions/:question_id/answers', (req, res) => {
   const date = Date.now();
   answer.date = date;
   answer.questionId = questionId;
-  // {
-  //   body: 'text goes here',
-  //   name: 'username',
-  //   email: 'hello@test.com',
-  //   photos: [ 'url', 'url1' ]
-  // }
-  console.log('answer object ', answer);
   models.insertAnswer(answer, (err, results) => {
     if (err) {
       res.status(400).send('Request failed: ');
     } else {
-      // if (answer.photos.length !== 0) {
-      //   // call insertPhotos only if post has photos
-      //   models.insertPhotos(answerId, (err, results) => {
-      //     if (err) {
-      //       res.status(500).send('Inserting photos failed: ', err);
-      //     } else {
-      //       res.status(201).send('Answer posted');
-      //     }
-      //   });
-      //   res.status(201).send('Answer posted');
-      // } else {
-      //   res.status(201).send('Answer posted');
-      // }
-      console.log(results);
-      res.status(201).send('Answer posted');
+      if (answer.photos.length !== 0) {
+        const answerId = results.rows[0].answer_id;
+        console.log('answerID inside', answerId);
+        // call insertPhotos only if post has photos
+        models.insertPhotos(answerId, answer.photos, (err1, results2) => {
+          if (err) {
+            res.status(500).send('Inserting photos failed: ', err1);
+          } else {
+            res.status(201).send('Answer posted & photos');
+          }
+        });
+      } else {
+        res.status(201).send('Answer posted');
+      }
     }
   });
 });
