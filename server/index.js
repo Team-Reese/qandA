@@ -12,7 +12,7 @@ const port = 3000;
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static('client')); // get the static files
+app.use(express.static('./frontend-capstone/dist')); // get the static files
 
 // ROUTES
 
@@ -28,38 +28,29 @@ app.get('/qa/questions', (req, res) => {
     if (err) {
       res.status(400).send('Error: ', err);
     } else {
-      console.log('results ', results.rows);
-
-      const data = {
-        product_id: productId,
-        results: results.rows,
-
-      };
-      console.log(data);
-      res.status(200).send(data);
+      // console.log('results HERHERHEH', results.rows);
+      res.status(200).send(results.rows);
     }
   });
 });
 
 // Get all answers for a particular question
 app.get('/qa/questions/:question_id/answers', (req, res) => {
-  const test = { cats: 'answers' };
-  // get question_id from the request:
+  const queryParams = req.query;
   const questionId = req.params.question_id;
   models.getAnswers(questionId, (err, result) => {
     if (err) {
       res.status(500).send('Request failed');
     } else {
-      console.log('result', result.rows);
-      res.status(200).send(result.rows);
+      console.log(result.rows);
+      const obj = {};
+      obj.question = questionId;
+      obj.page = queryParams.page || 1;
+      obj.count = queryParams.count || 5;
+      obj.results = result.rows;
+      res.status(200).send(obj);
     }
   });
-
-
-  // get queryParams from the request:
-  // const queryParams = req.query;
-  // console.log('queryParams', queryParams) { page: '3', count: '5' }
-  // if no querParams default page: 1 count: 5
 });
 
 // Post a question to the database
