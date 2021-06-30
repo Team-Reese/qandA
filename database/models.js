@@ -3,19 +3,17 @@ const pool = require('./localdb');
 
 // Models - Database queries
 
-const getQuestions = (productId, page, count, callback) => {
-  const queryString = `SELECT question_id, question_body, question_date, asker_name, question_helpfulness, reported
-   FROM questions WHERE product_id = ${productId} AND reported = false
-   ORDER BY question_helpfulness DESC
-   LIMIT ${count} OFFSET ${count * (page - 1)};`;
+const getQuestions = (productId, callback) => {
+  const queryString = `select json_build_object('id', answers.answer_id, 'body', answers.answer_body, 'date', answer_date, 'answerer_name', answerer_name, 'helpfulness', answer_helpfulness, 'photos', (select array(select json_build_object('id', photo_id, 'url', photo_url) from photos where answer_id = 1) as photos)) FROM answers;`;
   pool.query(queryString, (err, result) => {
     if (err) {
+      console.log(err);
       callback(err, null);
     } else {
       callback(null, result);
     }
   });
-};
+}
 
 // Get all answers for a particular question
 const getAnswers = (questionId, page, count, callback) => {
