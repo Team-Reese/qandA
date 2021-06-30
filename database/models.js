@@ -4,8 +4,13 @@ const pool = require('./localdb');
 // Models - Database queries
 
 const getQuestions = (productId, callback) => {
+  const temp =   `select json_object_agg(answer_id,
+
+    json_build_object('id', answers.answer_id, 'body', answers.answer_body, 'date', answer_date, 'answerer_name', answerer_name, 'helpfulness', answer_helpfulness, 'photos', (select array(select json_build_object('id', photo_id, 'url', photo_url) from photos where answer_id = 1) as photos))
+
+  ) as results from answers;`;
   const queryString = `select json_build_object('id', answers.answer_id, 'body', answers.answer_body, 'date', answer_date, 'answerer_name', answerer_name, 'helpfulness', answer_helpfulness, 'photos', (select array(select json_build_object('id', photo_id, 'url', photo_url) from photos where answer_id = 1) as photos)) FROM answers;`;
-  pool.query(queryString, (err, result) => {
+  pool.query(temp, (err, result) => {
     if (err) {
       console.log(err);
       callback(err, null);

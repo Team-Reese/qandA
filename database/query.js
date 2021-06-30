@@ -34,5 +34,23 @@ select question_id, question_body, question_date, asker_name, question_helpfulne
 
 
 select json_build_object('id', answers.answer_id, 'body', answers.answer_body, 'date', answer_date, 'answerer_name', answerer_name, 'helpfulness', answer_helpfulness, 'photos', (select array(select json_build_object('id', photo_id, 'url', photo_url) from photos where answer_id = 1) as photos)) FROM answers
+(select json_build_object('id', answers.answer_id, 'body', answers.answer_body, 'date', answer_date, 'answerer_name', answerer_name, 'helpfulness', answer_helpfulness, 'photos', (select array(select json_build_object('id', photo_id, 'url', photo_url) from photos where answer_id = 1) as photos)) FROM answers)
+
+select json_object_agg(answers.answer_id, json_build_object('id', answer_id) from answers) from answers;
 
 select json_object_agg(answers.answer_id, json_build_object('id', answer_id)) from answers;
+
+// this doesn't works
+select json_object_agg(answers.answer_id,
+
+  (json_build_object('id', answers.answer_id, 'body', answers.answer_body, 'date', answer_date, 'answerer_name', answerer_name, 'helpfulness', answer_helpfulness, 'photos', (select array(select json_build_object('id', photo_id, 'url', photo_url) from photos where answer_id = 1) as photos)))
+
+
+  ) from answers;
+
+// this works
+  select json_object_agg(answer_id,
+    json_build_object('id', answers.answer_id, 'body', answers.answer_body, 'date', answer_date, 'answerer_name', answerer_name, 'helpfulness', answer_helpfulness, 'photos', (select array(select json_build_object('id', photo_id, 'url', photo_url) from photos where answer_id = 1) as photos))
+  ) from answers as results;
+
+
