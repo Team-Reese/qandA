@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS questions (
   question_date BIGINT,
   asker_name VARCHAR(60) NOT NULL,
   asker_email VARCHAR(60) NOT NULL,
-  reported INT,
+  reported BOOLEAN DEFAULT 'f' NOT NULL,
   question_helpfulness INT
 );
 

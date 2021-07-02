@@ -1,0 +1,41 @@
+config:
+  target: 'http://localhost:3000'
+  phases:
+    - duration: 5
+      arrivalRate: 2
+      name: scaling load
+
+scenarios:
+#   - name: 'Get Questions'
+#     flow:
+#     - get:
+#         url: '/qa/questions'
+#         qs:
+#            product_id: 666666
+
+
+  # - name: 'Get Answers'
+  #   flow:
+  #   - get:
+  #      url: '/qa/questions/230100/answers'
+  #   # - get:
+    #    url: '/qa/questions/2067000/answers'
+    # - get:
+    #    url: '/qa/questions/24545/answers'
+    # - get:
+    #    url: '/qa/questions/2685/answers'
+    # - get:
+    #    url: '/qa/questions/165885/answers'
+
+- name: 'Insert Question'
+  flow:
+    - post:
+        url: '/qa/questions'
+        json:
+          body: "{{ testing }}"
+          name:  "{{ ADDIE }}"
+          email: "{{ test@test.com }}"
+          product_id: "{{ 55 }}"
+
+
+

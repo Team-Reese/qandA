@@ -1,30 +1,29 @@
 // const { Pool } = require('pg');
 const pool = require('./localdb');
 
-// Models - Database queries
-// 'photos', (select array(select json_build_object('id', photo_id, 'url', photo_url) from photos where answer_id = 1) as photos))
 const getQuestions = (productId, callback) => {
-const temp2 = `select question_id, question_body, question_date, asker_name, question_helpfulness, reported,
-(select json_object_agg(answer_id,
-  json_build_object('id', answers.answer_id, 'body', answers.answer_body,
-   'date', answer_date, 'answerer_name', answerer_name, 'helpfulness', answer_helpfulness,
-  'photos', (select array(select json_build_object('id', photo_id, 'url', photo_url) from photos where answer_id = 1) as photos))
-) as answers from answers)
-from questions where product_id =1 and reported = false
-ORDER BY question_helpfulness DESC LIMIT 3;`;
+  const temp4 = 'select question_id, question_body, question_date, asker_name, question_helpfulness, reported \
+ from questions where product_id =$1 and reported = false \
+ORDER BY question_helpfulness DESC LIMIT 3;';
 
+  pool.query(temp4, [productId], (err, result) => {
+    if (err) {
+      callback(err, null);
+    } else {
+      callback(null, result);
+    }
+  });
+};
 
+const getAnswersforQuestions = (questionId, page, count, callback) => {
+  page = page - 1;
+  const skip = count * page;
+  const queryString = 'select answer_id, answer_body, answer_date, answerer_name, reported, answer_helpfulness,\
+  (select json_object_agg(\'test\', json_build_object(\'id\', photo_id, \'url\', photo_url) from photos  where answer_id = answers.answer_id) as photos)\
+  from answers where question_id = $1 AND reported = 0\
+   ORDER BY answer_helpfulness DESC LIMIT $2 OFFSET $3;';
 
-
-
-
-  const temp =   `select json_object_agg(answer_id,
-
-    json_build_object('id', answers.answer_id, 'body', answers.answer_body, 'date', answer_date, 'answerer_name', answerer_name, 'helpfulness', answer_helpfulness, 'photos', (select array(select json_build_object('id', photo_id, 'url', photo_url) from photos where answer_id = 1) as photos))
-
-  ) as results from answers;`;
-  const queryString = `select json_build_object('id', answers.answer_id, 'body', answers.answer_body, 'date', answer_date, 'answerer_name', answerer_name, 'helpfulness', answer_helpfulness, 'photos', (select array(select json_build_object('id', photo_id, 'url', photo_url) from photos where answer_id = 1) as photos)) FROM answers;`;
-  pool.query(temp2, (err, result) => {
+  pool.query(queryString, [questionId, count, skip], (err, result) => {
     if (err) {
       console.log(err);
       callback(err, null);
@@ -32,7 +31,7 @@ ORDER BY question_helpfulness DESC LIMIT 3;`;
       callback(null, result);
     }
   });
-}
+};
 
 // Get all answers for a particular question
 const getAnswers = (questionId, page, count, callback) => {
@@ -42,9 +41,6 @@ const getAnswers = (questionId, page, count, callback) => {
   (select array(select json_build_object(\'id\', photo_id, \'url\', photo_url) from photos  where answer_id = answers.answer_id) as photos)\
   from answers where question_id = $1 AND reported = 0\
    ORDER BY answer_helpfulness DESC LIMIT $2 OFFSET $3;';
-  // const queryString = `select answer_id, answer_body, answer_date, answerer_name, reported, answer_helpfulness,
-  //   (select array(select json_build_object('id', photo_id, 'url', photo_url) from photos  where answer_id = answers.answer_id) as photos)
-  //   from answers where question_id = ${questionId} AND reported = 0 ORDER BY answer_helpfulness DESC LIMIT ${count} OFFSET ${count * (page - 1)};`;
   pool.query(queryString, [questionId, count, skip], (err, result) => {
     if (err) {
       console.log(err);
@@ -56,12 +52,12 @@ const getAnswers = (questionId, page, count, callback) => {
 };
 // Post a question to the database
 const insertQuestion = (question, callback) => {
-  // format question
   const queryString = 'INSERT INTO questions(product_id, question_body, question_date, asker_name, asker_email, reported, question_helpfulness) VALUES($1, $2, $3, $4, $5, false, 0)';
   pool.query(queryString, [question.product_id, question.body, question.date,
     question.name, question.email], (err, result) => {
     if (err) {
-;      callback(err, null);
+      console.log(err);
+      callback(err, null);
     } else {
       callback(null, result);
     }
@@ -74,14 +70,12 @@ const insertAnswer = (answer, callback) => {
   pool.query(queryString, [answer.questionId, answer.body, answer.date, answer.name, answer.email],
     (err, result) => {
       if (err) {
-        console.log(err);
         callback(err, null);
       } else {
         callback(null, result);
       }
     });
 };
-// VALUES(${answer.questionId}, '${answer.body}', ${answer.date}, '${answer.name}', '${answer.email}', 0, 0); `;
 
 // Insert photos into photos table in the databse
 const insertPhotos = (answerId, photos, callback) => {
@@ -152,6 +146,7 @@ module.exports = {
   // functions here
   getQuestions,
   getAnswers,
+  getAnswersforQuestions,
   insertQuestion,
   insertAnswer,
   insertPhotos,

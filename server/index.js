@@ -28,8 +28,28 @@ app.get('/qa/questions', (req, res) => {
     if (err) {
       res.status(400).send('Error: ', err);
     } else {
-      // console.log('results HERHERHEH', results.rows);
-      res.status(200).send(results.rows);
+      const obj = {};
+      obj.product_id = productId;
+      obj.results = results.rows;
+      let qIds = [];
+      results.rows.forEach((row) => { qIds.push(row.question_id); });
+      // console.log('our object', obj);
+      // console.log('qIds', qIds);
+      res.status(200).send(obj);
+    }
+  });
+});
+
+app.get('/qa/test/questions/:question_id/answers', (req, res) => {
+  const queryParams = req.query;
+  const questionId = req.params.question_id;
+  const page = queryParams.page || 1;
+  const count = queryParams.count || 5;
+  models.getAnswersforQuestions(questionId, page, count, (err, result) => {
+    if (err) {
+      res.status(500).send('Request failed');
+    } else {
+      res.status(200).send(result.rows);
     }
   });
 });
