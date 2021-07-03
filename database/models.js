@@ -4,7 +4,7 @@ const pool = require('./localdb');
 const getQuestions = (productId, callback) => {
   const temp4 = 'select question_id, question_body, question_date, asker_name, question_helpfulness, reported \
  from questions where product_id =$1 and reported = false \
-ORDER BY question_helpfulness DESC LIMIT 3;';
+ORDER BY question_helpfulness DESC LIMIT 10;';
 
   pool.query(temp4, [productId], (err, result) => {
     if (err) {
